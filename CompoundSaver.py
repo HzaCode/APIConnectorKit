@@ -1,7 +1,7 @@
 
 import requests
 import webbrowser
-import pcp  
+import pubchempy as pcp
 
 # Function to get the CID (Compound Identifier) by name
 def get_cid_by_name(name):
