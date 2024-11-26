@@ -1,0 +1,102 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+import time
+import math
+
+def get_search_results_with_selenium(search_word):
+    # Chrome setup
+    chrome_options = Options()
+    # chrome_options.add_argument("--headless")  # Headless if needed
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (compatible; Chrome/91.0)")
+
+    # Path to ChromeDriver
+    chromedriver_path = r"path/to/your/chromedriver"
+    service = Service(chromedriver_path)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    try:
+        # Build search URL
+        url = f"https://s.wanfangdata.com.cn/paper?q={search_word}"
+        print(f"Search URL: {url}")
+
+        driver.get(url)
+
+        # Wait for results to show up
+        WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".normal-list"))
+        )
+
+        # Get total results
+        try:
+            total_results_element = driver.find_element(By.CSS_SELECTOR, ".mark-number")
+            total_results_text = total_results_element.text.replace(",", "")
+            total_results = int(total_results_text) if total_results_text.isdigit() else 0
+            print(f"Total results: {total_results}")
+        except NoSuchElementException:
+            print("Total results not found, assuming few.")
+            total_results = 0
+
+        # Calc pages
+        items_per_page = 10
+        total_pages = math.ceil(total_results / items_per_page) if total_results > 0 else 1
+        print(f"Total pages: {total_pages}")
+
+        # Grab only first 10 pages max
+        max_pages_to_scrape = min(total_pages, 10)
+
+        results = []
+
+        # Loop through pages
+        for page in range(1, max_pages_to_scrape + 1):
+            # Update page URL
+            page_url = f"https://s.wanfangdata.com.cn/paper?q={search_word}&page={page}"
+            print(f"Accessing page {page}: {page_url}")
+
+            driver.get(page_url)
+
+            # Wait for results
+            try:
+                WebDriverWait(driver, 30).until(
+                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".normal-list"))
+                )
+            except TimeoutException:
+                print(f"Page {page} timeout, skipping.")
+                continue
+
+            # Get items on page
+            result_items = driver.find_elements(By.CSS_SELECTOR, ".normal-list")
+
+            # Extract data
+            for item in result_items:
+                try:
+                    title = item.find_element(By.CSS_SELECTOR, ".title").text or "Title not found"
+                    abstract = item.find_element(By.CSS_SELECTOR, ".abstract-area").text or "Abstract not found"
+                    authors_elements = item.find_elements(By.CSS_SELECTOR, ".authors")
+                    authors = ", ".join([author.text for author in authors_elements])
+
+                    results.append({
+                        "title": title,
+                        "abstract": abstract,
+                        "authors": authors
+                    })
+                except:
+                    continue
+
+        return results
+
+    finally:
+        driver.quit()
+
+
+search_word = ""
+results = get_search_results_with_selenium(search_word)
+if results:
+    for result in results:
+        print(result)
