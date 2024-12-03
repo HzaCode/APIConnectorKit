@@ -25,20 +25,7 @@ class PDEDocumentProcessor:
 
         # Map doc sections to standardized names
         self.SECTION_MAPPING = {
-            "Pharmacodynamics data": "Pharmacodynamics",
-            "Mechanism of Action": "Mechanism of Action",
-            "ANNEXURE I: PHARMACOKINETICS": "Pharmacokinetics",
-            "Indication": "Indication", 
-            "HAZARDS IDENTIFIED": "Hazard Identified",
-            "Acute toxicity studies": "Clinical Toxicity",
-            "Repeated dose toxicity studies": "Non-Clinical Toxicity",
-            "Carcinogenicity": "Non-Clinical Toxicity",
-            "Reproductive and developmental studies": "Non-Clinical Toxicity",
-            "Highly sensitizing potential": "Non-Clinical Toxicity",
-            "IDENTIFICATION OF CRITICAL EFFECTS": "Therapeutic/Adverse Effects in Clinical Studies",
-            "RATIONALE FOR NO/LOWEST OBSERVED ADVERSE EFFECT LEVEL": "Point of Departure (PoD) and Its Rationale",
-            "APPLICATION OF ADJUSTMENT FACTORS": "Uncertainty Factors",
-            "PDE CALCULATION": "PDE Calculation"
+     
         }
 
     def convert_table_to_markdown(self, table: Table) -> str:
